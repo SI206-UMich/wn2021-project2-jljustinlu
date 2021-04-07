@@ -31,7 +31,6 @@ def get_titles_from_search_results(filename):
         count += 1
     return titles_and_authors
         
-
     
 
 def get_search_links():
@@ -93,7 +92,27 @@ def summarize_best_books(filepath):
     ("Fiction", "The Testaments (The Handmaid's Tale, #2)", "https://www.goodreads.com/choiceawards/best-fiction-books-2020") 
     to your list of tuples.
     """
-    pass
+    count = 0
+    result = []
+    folder = os.path.dirname(os.path.abspath(__file__))
+    fin = os.path.join(folder, filepath)
+    f = open(fin, encoding = "UTF-8")
+    text = f.read()
+    text = text.replace("\n", "")
+    f.close()
+    soup = BeautifulSoup(text, "html.parser")
+    categories = soup.find_all("h4", class_ = "category__copy")
+    titles = soup.find_all("img", class_ = "category__winnerImage")
+    urls = soup.find_all("a", class_ = None)
+    for cat in categories:
+        category = categories[count].get_text()
+        title = titles[count]["alt"]
+        url = urls[count + 1].get("href")
+        result.append((category, title, url))
+        count += 1
+    return result
+        
+    
 
 
 def write_csv(data, filename):
@@ -176,18 +195,22 @@ class TestCases(unittest.TestCase):
 
     def test_summarize_best_books(self):
         # call summarize_best_books and save it to a variable
-
+        summary = summarize_best_books("best_books_2020.htm")
         # check that we have the right number of best books (20)
-
+        self.assertEqual(len(summary), 20)
             # assert each item in the list of best books is a tuple
-
+        for book in summary:
+            self.assertTrue(type(book), tuple)
             # check that each tuple has a length of 3
-
+            self.assertEqual(len(book), 3)
         # check that the first tuple is made up of the following 3 strings:'Fiction', "The Midnight Library", 'https://www.goodreads.com/choiceawards/best-fiction-books-2020'
-
+            self.assertEqual(summary[0][0], "Fiction")
+            self.assertEqual(summary[0][1], "The Midnight Library")
+            self.assertEqual(summary[0][2], "https://www.goodreads.com/choiceawards/best-fiction-books-2020")
         # check that the last tuple is made up of the following 3 strings: 'Picture Books', 'Antiracist Baby', 'https://www.goodreads.com/choiceawards/best-picture-books-2020'
-
-        pass
+            self.assertEqual(summary[19][0], "Picture Books")
+            self.assertEqual(summary[19][1], "Antiracist Baby")
+            self.assertEqual(summary[19][2], "https://www.goodreads.com/choiceawards/best-picture-books-2020")
 
 
     def test_write_csv(self):
